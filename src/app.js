@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 
-// import { corsMiddleware } from "./middlewares/cors-middleware.js";
+import { corsMiddleware } from "./middlewares/cors-middleware.js";
 
 const app = express();
 
@@ -23,10 +23,14 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// app.use(corsMiddleware);
+app.use(corsMiddleware);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Shop Braze website Backend");
 });
+
+import websitePageTemplatesRouter from "./routes/website-page-templates/website-page-templates.route.js";
+
+app.use("/website-page-templates", websitePageTemplatesRouter);
 
 export { app };
