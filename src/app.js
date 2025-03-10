@@ -31,8 +31,10 @@ app.get("/", (req, res) => {
 
 import websitePageTemplatesRouter from "./routes/website-page-templates/website-page-templates.route.js";
 import websitePageConfigRouter from "./routes/website-page-config/website-page-config.route.js";
+import collectionRouter from "./routes/collection/collection.route.js";
 
 app.use("/website-page-templates", websitePageTemplatesRouter);
 app.use("/website-page-config", websitePageConfigRouter);
+app.use("/collection", collectionRouter);
 
 export { app };
