@@ -4,6 +4,9 @@ import { Collection } from "../../../models/collection/collection.model.js";
 export const getCollectionCatalogues = async (req, res) => {
   try {
     const { collection_id } = req?.params;
+    const page = parseInt(req?.query?.page) || 1;
+    const limit = parseInt(req?.query?.limit) || 12;
+    const skip = (page - 1) * limit;
 
     const collection = await Collection.findOne({ short_id: collection_id });
     if (!collection) {
@@ -12,12 +15,19 @@ export const getCollectionCatalogues = async (req, res) => {
 
     const catalogues = await Catalogue.find({
       collections_to_add: collection_id,
+    })
+      .skip(skip)
+      .limit(limit);
+
+    const totalCatalogues = await Catalogue.countDocuments({
+      collections_to_add: collection_id,
     });
 
     return res.status(200).json({
       data: {
         collection,
         catalogues,
+        hasMore: totalCatalogues > page * limit,
       },
     });
   } catch (error) {
