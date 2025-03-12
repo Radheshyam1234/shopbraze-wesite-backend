@@ -14,7 +14,7 @@ const verifySeller = async (req, res, next) => {
     }
 
     // Find seller by subdomain
-    const seller = await Seller.findOne({ preferred_web_prefix: "hanuman" });
+    const seller = await Seller.findOne({ preferred_web_prefix: "ram" });
 
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });
