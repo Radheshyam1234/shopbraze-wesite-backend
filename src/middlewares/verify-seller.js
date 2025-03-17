@@ -4,8 +4,7 @@ const verifySeller = async (req, res, next) => {
   try {
     const hostname = req?.hostname;
 
-    // Extract subdomain (assuming format: seller.shopbraze.in)
-    const subdomain = hostname?.split(".")[0];
+    let subdomain = hostname?.split?.(".")?.[0];
 
     if (!subdomain || subdomain === "www") {
       return res
@@ -13,8 +12,9 @@ const verifySeller = async (req, res, next) => {
         .json({ message: "Invalid request: No seller detected" });
     }
 
-    // Find seller by subdomain
-    const seller = await Seller.findOne({ preferred_web_prefix: "ram" });
+    subdomain = "ram";
+
+    const seller = await Seller.findOne({ preferred_web_prefix: subdomain });
 
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });

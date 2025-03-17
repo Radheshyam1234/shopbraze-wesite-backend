@@ -33,10 +33,12 @@ import websitePageTemplatesRouter from "./routes/website-page-templates/website-
 import websitePageConfigRouter from "./routes/website-page-config/website-page-config.route.js";
 import collectionRouter from "./routes/collection/collection.route.js";
 import catalogueRouter from "./routes/catalogue/catalogue.route.js";
+import cartRouter from "./routes/cart/cart.route.js";
 
 app.use("/website-page-templates", websitePageTemplatesRouter);
 app.use("/website-page-config", websitePageConfigRouter);
 app.use("/collection", collectionRouter);
 app.use("/catalogue", catalogueRouter);
+app.use("/cart", cartRouter);
 
 export { app };
