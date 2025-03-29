@@ -8,6 +8,7 @@ const getCatalogueDetails = async (req, res) => {
     });
     if (!catalogue)
       return res.status(404).json({ error: "Catalogue Not Found" });
+
     res.status(200).json({
       data: {
         catalogue,
