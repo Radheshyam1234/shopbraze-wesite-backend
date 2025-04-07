@@ -13,7 +13,7 @@ const verifyCustomer = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV !== "development",
         sameSite: process.env.NODE_ENV === "development" ? "Strict" : "None",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
     }
     req.visitorId = visitorId;
@@ -26,7 +26,9 @@ const verifyCustomer = async (req, res, next) => {
         const session = await redis.get(`session:${token}`);
 
         if (session && session === decoded.customerId) {
-          const customer = await Customer.findById(decoded.customerId);
+          const customer = await Customer.findById(decoded.customerId).select(
+            "-createdAt -updatedAt"
+          );
           if (customer) {
             req.customer = customer;
           }

@@ -13,7 +13,9 @@ const verifyOtp = async (req, res) => {
 
     await redis.del(`otp:${phone}`);
 
-    let customer = await Customer.findOne({ phone });
+    let customer = await Customer.findOne({ phone }).select(
+      "-createdAt -updatedAt"
+    );
     if (!customer) {
       customer = await Customer.create({ phone });
     }
@@ -22,7 +24,7 @@ const verifyOtp = async (req, res) => {
       { customerId: customer._id },
       process.env.JWT_SECRET,
       {
-        expiresIn: "7d",
+        expiresIn: "30d",
       }
     );
 
@@ -30,14 +32,14 @@ const verifyOtp = async (req, res) => {
       `session:${sessionToken}`,
       customer._id.toString(),
       "EX",
-      60 * 60 * 24 * 7
-    ); // 7 days
+      60 * 60 * 24 * 30
+    ); // 30 days
 
     res.cookie("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== "development",
       sameSite: process.env.NODE_ENV !== "development" ? "None" : "Strict",
-      maxAge: 60 * 60 * 24 * 7 * 1000,
+      maxAge: 60 * 60 * 24 * 30 * 1000,
     });
 
     return res.status(200).json({ message: "Verified", customer });

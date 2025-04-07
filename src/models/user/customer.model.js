@@ -14,6 +14,14 @@ const AddressSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    city: {
+      type: String,
+      required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
   },
   { _id: false }
 );
@@ -27,11 +35,9 @@ const CustomerSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      required: true,
     },
     address: {
       type: AddressSchema,
-      required: true,
     },
   },
   {
