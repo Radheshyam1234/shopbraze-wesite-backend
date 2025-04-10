@@ -37,8 +37,11 @@ import catalogueRouter from "./routes/catalogue/catalogue.route.js";
 import cartRouter from "./routes/cart/cart.route.js";
 import couponsRouter from "./routes/coupons/coupons.route.js";
 import authRouter from "./routes/auth/auth.route.js";
+import checkoutRouter from "./routes/checkout/checkout.route.js";
 
 app.use("/api/pincode", pincodeRouter);
+
+app.use("/auth", authRouter);
 
 app.use("/website-page-templates", websitePageTemplatesRouter);
 app.use("/website-page-config", websitePageConfigRouter);
@@ -46,6 +49,6 @@ app.use("/collection", collectionRouter);
 app.use("/catalogue", catalogueRouter);
 app.use("/cart", cartRouter);
 app.use("/coupons", couponsRouter);
-app.use("/auth", authRouter);
+app.use("/checkout", checkoutRouter);
 
 export { app };

@@ -4,11 +4,16 @@ import axios from "axios";
 const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
+
     if (!phone) return res.status(400).json({ error: "Phone is required" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    await redis.set(`otp:${phone}`, otp, "EX", 600); // expires in 10 mins
+    // await redis.set(`otp:${phone}`, otp, "EX", 600); // expires in 10 mins
+
+    await redis.set(`otp:${phone}`, otp, {
+      EX: 600, // Expiry in 10 mins
+    });
 
     // WhatsApp API config
     const phoneNumberId = "662429000287183";
@@ -16,7 +21,7 @@ const sendOtp = async (req, res) => {
 
     const headers = {
       // Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-      Authorization: `Bearer EAAJXc0JrXVUBOZBr3IGqpXYJGzNmIzfIWGEzExagvyYcSp00hw4G03Pf2oT7dZA4kn3u3IeQjjZCzG6CJZAckZCXxzOsTAZCLJQfxAZAVMfBVQCAP9R9DBA0C36RXiZAZCW2gpRrvu6K7BfViPhFhVEu9Qq2R7Y46QhJRyaxXMhg6AvtxJs33RBeNu0DSRHLdcGjNmI240hoYTWm0DUMhJuagXVZBm3b0ZD`,
+      Authorization: `Bearer EAAJXc0JrXVUBOzyvvsO12gcmBCFhP8gfgvDRWg2hBbKTDap32HOZCPHhJj0n6uEFTVYyQ2hUcMcMomchPW70RvEBtZBJnLUV7BZADAfFBdoZBm55jXxAPhAxECmBdwtvHZCuKYWPSIGNP8iWnHQlcEasOVFHzYfTUiX55jNHZCkl5scAnxZCFLVpLmHHwHKuZASbrwZDZD`,
       "Content-Type": "application/json",
     };
 
@@ -55,8 +60,6 @@ const sendOtp = async (req, res) => {
     };
 
     const response = await axios.post(url, body, { headers });
-
-    console.log("OTP sent via WhatsApp:", otp);
     res.status(200).json({ message: "OTP sent" });
   } catch (error) {
     console.error("Failed to send OTP", error?.response?.data || error.message);
