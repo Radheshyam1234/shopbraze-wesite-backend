@@ -1,116 +1,100 @@
-import { Catalogue } from "../../../models/catalogue/catalogue.model.js";
-import { Coupon } from "../../../models/coupon/coupon.model.js";
-import { buyNowCalculationWithCoupons } from "../../../utils/buy-now/buy-now-calculation-with-coupons.js";
+import { redis } from "../../../configurations/redis/index.js";
+import { calculateBuyNowCheckoutDetails } from "../../../utils/buy-now/calculate-buy-now-checkout-details.js";
+import crypto from "crypto";
+
+const generateCheckoutSessionTokenForBuyNow = (
+  userId,
+  productId,
+  skuId,
+  quantity
+) => {
+  const data = `${userId}-${productId}-${skuId}-${quantity}-${Date.now()}`;
+  const hash = crypto.createHash("sha256");
+  hash.update(data);
+  return hash.digest("hex");
+};
+
+function transformBillDetails(rawBill) {
+  const formatINR = (val) => `₹${val.toLocaleString("en-IN")}`;
+
+  return {
+    title: "Bill Details",
+    sub_title: `Yay! your total discount is ₹${(
+      rawBill.total_mrp - rawBill.total_amount
+    ).toLocaleString("en-IN")}`,
+    entities: [
+      { key: "Items", value: rawBill.items },
+      { key: "Item total", value: formatINR(rawBill.item_total) },
+      { key: "Sale Discount", value: `-${formatINR(rawBill.sale_discount)}` },
+      ...(rawBill.coupon_discount > 0
+        ? [
+            {
+              key: "Coupon Discount",
+              value: `-${formatINR(rawBill.coupon_discount)}`,
+            },
+          ]
+        : []),
+      { key: "Delivery fee", value: formatINR(rawBill.delivery_fee) },
+      { key: "Total amount", value: formatINR(rawBill.total_amount) },
+    ],
+  };
+}
 
 const getBuyNowCheckoutDetails = async (req, res) => {
   try {
-    const { product_id, quantity, sku_id } = req?.query;
+    const { product_id, quantity, sku_id } = req.query;
+    const user_id = req?.customer?._id;
 
-    const selectedProductDetails = await Catalogue?.findOne({
-      product_short_id: product_id,
-    }).lean();
+    if (!user_id || !product_id || !sku_id || !quantity) {
+      return res.status(400).json({ error: "Missing required parameters." });
+    }
 
-    if (!selectedProductDetails)
-      return res.status(404).json({ error: "Product not found" });
-
-    const selectedSkuDetails = selectedProductDetails?.customer_skus?.find(
-      (sku) => sku?.short_id === sku_id
-    );
-
-    if (!selectedSkuDetails)
-      return res.status(404).json({ error: "Sku not found" });
-
-    const sale_discount_percentage = 50;
-
-    /*----------------- For Product Details -------------- */
-
-    const total_mrp = Number(selectedSkuDetails?.mrp) * Number(quantity);
-
-    const product_details = {
-      customer_product_short_id: product_id,
-      customer_sku_short_id: selectedSkuDetails?.short_id,
-      size: selectedSkuDetails?.size,
-      product_name: selectedProductDetails?.title,
-      product_image: selectedProductDetails?.media?.images?.[0]?.url,
-      quantity_to_buy: quantity,
-      mrp: total_mrp,
-      selling_price_per_unit: Number(selectedSkuDetails?.selling_price),
-      effective_price:
-        Number(selectedSkuDetails?.selling_price) * Number(quantity),
-    };
-
-    /*----------------- For Bill Details -------------- */
-
-    const items_total_price = Number(
-      (
-        Number(selectedSkuDetails?.selling_price) *
-        Number(quantity) *
-        (100 / sale_discount_percentage)
-      ).toFixed(0)
-    );
-
-    const sale_discount_value = Number(
-      (items_total_price * (1 - sale_discount_percentage / 100)).toFixed(0)
-    );
-
-    const raw_bill_amount =
-      Number(items_total_price) - Number(sale_discount_value);
-
-    // Get Coupon Discount Details
-    const couponsData = await Coupon.find({ seller: req?.seller?._id });
-    const { applied_coupon_discount_value } = buyNowCalculationWithCoupons({
+    const { products, bill_details } = await calculateBuyNowCheckoutDetails({
       product_id,
-      raw_bill_amount,
-      couponsData,
+      sku_id,
+      quantity,
+      seller_id: req?.seller?._id,
     });
 
-    const final_bill_amount =
-      Number(items_total_price) -
-      Number(sale_discount_value) -
-      Number(applied_coupon_discount_value);
+    /*----------------------Token System for Checkout------------------------*/
 
-    const bill_details = {
-      title: "Bill Details",
-      sub_title: `Yay! your total discount is ₹${
-        Number(total_mrp) - Number(final_bill_amount)
-      }`,
-      entities: [
-        { key: "Items", value: 1 },
-        {
-          key: "Item total",
-          value: `₹${items_total_price?.toLocaleString("en-IN")}`,
-        },
-        {
-          key: "Sale Discount",
-          value: `-₹${sale_discount_value?.toLocaleString("en-IN")}`,
-        },
-        ...(applied_coupon_discount_value > 0
-          ? [
-              {
-                key: "Coupon Discount",
-                value: `-₹${applied_coupon_discount_value?.toLocaleString(
-                  "en-IN"
-                )}`,
-              },
-            ]
-          : []),
-        { key: "Delivery fee", value: `₹0` },
-        {
-          key: "Total amount",
-          value: `₹${final_bill_amount?.toLocaleString("en-IN")}`,
-        },
-      ],
+    // 1. Remove old token if exists (ensures one active token per user)
+    const oldTokenKey = await redis.get(`checkout_token_user:${user_id}`);
+    if (oldTokenKey) {
+      await redis.del(oldTokenKey);
+    }
+
+    // 2. Generate new token
+    const newToken = generateCheckoutSessionTokenForBuyNow(
+      user_id,
+      product_id,
+      sku_id,
+      quantity
+    );
+    const tokenKey = `checkout_token:${newToken}`;
+
+    // 3. Store checkout session data in Redis
+    const checkoutSessionData = {
+      user_id,
+      product_id,
+      sku_id,
+      quantity,
     };
 
-    const checkoutDetails = {
-      products: [product_details],
-      bill_details,
-    };
+    await redis.setEx(tokenKey, 3600, JSON.stringify(checkoutSessionData)); // Store main token
+    await redis.setEx(`checkout_token_user:${user_id}`, 3600, tokenKey); // Store pointer to user's active token
 
-    res.status(200).json({ data: checkoutDetails });
+    // 4. Send both checkout details and session token to frontend
+    res.status(200).json({
+      data: {
+        products,
+        bill_details: transformBillDetails(bill_details),
+      },
+      checkoutSessionToken: newToken,
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error?.message });
+    res.status(error?.status || 500).json({ error: error.message });
   }
 };
 

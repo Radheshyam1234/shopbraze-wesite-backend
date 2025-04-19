@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const AddressSchema = new mongoose.Schema(
+export const AddressSchema = new mongoose.Schema(
   {
     building_name: {
       type: String,
@@ -26,7 +26,7 @@ const AddressSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const CustomerSchema = new mongoose.Schema(
+export const CustomerSchema = new mongoose.Schema(
   {
     phone: {
       type: String,
