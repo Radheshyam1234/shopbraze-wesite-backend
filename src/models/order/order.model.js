@@ -25,6 +25,8 @@ const OrderStatusSchema = new mongoose.Schema(
 
 const ProductSchema = new mongoose.Schema(
   {
+    order_item_id: { type: String, unique: true, required: true },
+    status_history: [OrderStatusSchema],
     customer_product_short_id: String,
     customer_sku_short_id: String,
     size: String,
@@ -34,6 +36,8 @@ const ProductSchema = new mongoose.Schema(
     mrp: Number,
     selling_price_per_unit: Number,
     effective_price: Number,
+    cancellation_reason: String,
+    customer_remarks: String,
   },
   { _id: false }
 );
@@ -64,8 +68,6 @@ const CouponDetailsSchema = new mongoose.Schema(
 
 const OrderSchema = new mongoose.Schema(
   {
-    order_id: { type: String, unique: true, required: true },
-    status_history: [OrderStatusSchema],
     payment_mode: {
       type: String,
       enum: ["cod", "online"],
@@ -77,6 +79,11 @@ const OrderSchema = new mongoose.Schema(
     seller: {
       type: ObjectId,
       ref: "Seller",
+      required: true,
+    },
+    customer: {
+      type: ObjectId,
+      ref: "Customer",
       required: true,
     },
     customer_details: {

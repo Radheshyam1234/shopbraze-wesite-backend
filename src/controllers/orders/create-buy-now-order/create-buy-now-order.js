@@ -6,7 +6,7 @@ import { calculateBuyNowCheckoutDetails } from "../../../utils/buy-now/calculate
 import { Coupon } from "../../../models/coupon/coupon.model.js";
 
 function generateOrderId() {
-  return "NS" + crypto.randomBytes(8).toString("hex").toUpperCase();
+  return "SB" + crypto.randomBytes(12).toString("hex").toUpperCase();
 }
 
 const createBuyNowOrder = async (req, res) => {
@@ -82,12 +82,15 @@ const createBuyNowOrder = async (req, res) => {
         : null;
 
       const order = new Order({
-        order_id: generateOrderId(),
-        customer_details: req?.customer,
         seller: req?.seller,
-        products,
+        customer: req?.customer?._id,
+        customer_details: req?.customer,
+        products: products.map((item) => ({
+          ...item,
+          order_item_id: generateOrderId(),
+          status_history: [{ status: "pending", timestamp: new Date() }],
+        })),
         bill_details,
-        status_history: [{ status: "pending", timestamp: new Date() }],
         payment_mode: payment_mode,
         coupon_details: couponDetails,
       });
