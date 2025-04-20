@@ -1,21 +1,28 @@
+import { redis } from "../../configurations/redis/index.js";
 import { CustomerCart } from "../../models/cart/cart.model.js";
 import { Coupon } from "../../models/coupon/coupon.model.js";
 import { cartCalculationWithCoupons } from "./cart-calculation-with-coupons.js";
 import { getCartItemDetails } from "./get-cart-item-details.js";
 
-const calculateCartCheckoutDetails = async ({ sellerId, customerId }) => {
-  if (!customerId || !sellerId) {
-    const error = new Error("You must be logged in");
-    error.status = 404;
-    throw error;
+const calculateCartCheckoutDetails = async ({
+  sellerId,
+  customerId,
+  visitor_id,
+}) => {
+  let cartItems = [];
+
+  if (sellerId && customerId) {
+    const customerCart = await CustomerCart.findOne({
+      customer: customerId,
+      seller: sellerId,
+    }).lean();
+
+    cartItems = customerCart?.items || [];
+  } else if (visitor_id) {
+    const cartKey = `cart:${visitor_id}`;
+    const cartData = await redis.lRange(cartKey, 0, -1);
+    cartItems = cartData?.map((item) => JSON.parse(item)) || [];
   }
-
-  const customerCart = await CustomerCart.findOne({
-    customer: customerId,
-    seller: sellerId,
-  }).lean();
-
-  const cartItems = customerCart?.items || [];
 
   if (!cartItems.length) {
     const error = new Error("Your cart is empty.");

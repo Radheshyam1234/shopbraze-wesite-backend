@@ -42,14 +42,12 @@ const getCartCheckoutDetails = async (req, res) => {
   try {
     const user_id = req?.customer?._id;
     const sellerId = req?.seller?._id;
-
-    if (!user_id || !sellerId) {
-      return res.status(400).json({ error: "You must be logged in" });
-    }
+    const visitor_id = req?.visitorId;
 
     const { products, bill_details } = await calculateCartCheckoutDetails({
       sellerId: sellerId,
       customerId: user_id,
+      visitor_id,
     });
 
     /*----------------------Token System for Checkout (if user loggedIn)------------------------*/
