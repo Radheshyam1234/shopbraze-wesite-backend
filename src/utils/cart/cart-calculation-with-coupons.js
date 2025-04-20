@@ -1,9 +1,11 @@
 export const cartCalculationWithCoupons = (cartItemsDetails, couponsData) => {
-  let bag_savings_text = "";
-
+  const cart_total_mrp = cartItemsDetails?.reduce(
+    (priceSum, item) => (priceSum += item?.mrp * item?.quantity_in_cart),
+    0
+  );
   const cart_total_raw_price = cartItemsDetails?.reduce(
     (priceSum, item) =>
-      (priceSum += item?.effective_price * item?.quantity_in_cart),
+      (priceSum += item?.selling_price * item?.quantity_in_cart),
     0
   );
   let cart_total_final_price = cart_total_raw_price; // just for initialize final price value (will get updated if coupon appiled)
@@ -59,11 +61,34 @@ export const cartCalculationWithCoupons = (cartItemsDetails, couponsData) => {
     (coupon) => coupon?.short_id
   );
 
+  /*-----------For Sale Discount and cart_items_total calculation------------------ */
+
+  const sale_discount_percentage = 50;
+
+  const cart_items_total = cartItemsDetails?.reduce(
+    (priceSum, item) =>
+      (priceSum +=
+        item?.selling_price *
+        item?.quantity_in_cart *
+        (100 / sale_discount_percentage)),
+    0
+  );
+
+  const sale_discount_value = Number(
+    (cart_items_total * (1 - sale_discount_percentage / 100)).toFixed(0)
+  );
+
+  /*--------------------------------------------------------------------------- */
+
   return {
     bag_savings_text:
       max_discount > 0 ? `Saving ₹${max_discount.toFixed(0)}` : "",
+    cart_total_mrp,
+    cart_items_total,
     cart_total_price: cart_total_final_price,
     allEligibleCouponsIds,
     appliedCouponId,
+    coupon_discount: max_discount,
+    sale_discount_value,
   };
 };

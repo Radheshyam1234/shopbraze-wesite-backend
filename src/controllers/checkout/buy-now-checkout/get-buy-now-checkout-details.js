@@ -45,7 +45,7 @@ const getBuyNowCheckoutDetails = async (req, res) => {
     const { product_id, quantity, sku_id } = req.query;
     const user_id = req?.customer?._id;
 
-    if (!user_id || !product_id || !sku_id || !quantity) {
+    if (!product_id || !sku_id || !quantity) {
       return res.status(400).json({ error: "Missing required parameters." });
     }
 
@@ -56,41 +56,50 @@ const getBuyNowCheckoutDetails = async (req, res) => {
       seller_id: req?.seller?._id,
     });
 
-    /*----------------------Token System for Checkout------------------------*/
+    /*----------------------Token System for Checkout (if user loggedIn)------------------------*/
+
+    let newToken = "";
 
     // 1. Remove old token if exists (ensures one active token per user)
-    const oldTokenKey = await redis.get(`checkout_token_user:${user_id}`);
-    if (oldTokenKey) {
-      await redis.del(oldTokenKey);
+    if (user_id) {
+      const oldTokenKey = await redis.get(
+        `buy_now_checkout_token_user:${user_id}`
+      );
+      if (oldTokenKey) {
+        await redis.del(oldTokenKey);
+      }
+
+      // 2. Generate new token
+      newToken = generateCheckoutSessionTokenForBuyNow(
+        user_id,
+        product_id,
+        sku_id,
+        quantity
+      );
+      const tokenKey = `buy_now_checkout_token:${newToken}`;
+
+      // 3. Store checkout session data in Redis
+      const checkoutSessionData = {
+        user_id,
+        product_id,
+        sku_id,
+        quantity,
+      };
+
+      await redis.setEx(tokenKey, 3600, JSON.stringify(checkoutSessionData)); // Store main token
+      await redis.setEx(
+        `buy_now_checkout_token_user:${user_id}`,
+        3600,
+        tokenKey
+      ); // Store pointer to user's active token
     }
-
-    // 2. Generate new token
-    const newToken = generateCheckoutSessionTokenForBuyNow(
-      user_id,
-      product_id,
-      sku_id,
-      quantity
-    );
-    const tokenKey = `checkout_token:${newToken}`;
-
-    // 3. Store checkout session data in Redis
-    const checkoutSessionData = {
-      user_id,
-      product_id,
-      sku_id,
-      quantity,
-    };
-
-    await redis.setEx(tokenKey, 3600, JSON.stringify(checkoutSessionData)); // Store main token
-    await redis.setEx(`checkout_token_user:${user_id}`, 3600, tokenKey); // Store pointer to user's active token
-
     // 4. Send both checkout details and session token to frontend
     res.status(200).json({
       data: {
         products,
         bill_details: transformBillDetails(bill_details),
       },
-      checkoutSessionToken: newToken,
+      ...(user_id && { checkoutSessionToken: newToken }),
     });
   } catch (error) {
     console.log(error);

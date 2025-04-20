@@ -20,7 +20,7 @@ const createBuyNowOrder = async (req, res) => {
     try {
       /*--------------------------- Validating Checkout session token from redis---------------------------- */
 
-      const checkoutSessionKey = `checkout_token:${checkoutToken}`;
+      const checkoutSessionKey = `buy_now_checkout_token:${checkoutToken}`;
       const checkoutSessionData = await redis.get(checkoutSessionKey);
 
       if (!checkoutSessionData) {

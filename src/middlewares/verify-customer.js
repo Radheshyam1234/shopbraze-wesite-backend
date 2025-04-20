@@ -13,7 +13,7 @@ const verifyCustomer = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV !== "development",
         sameSite: process.env.NODE_ENV === "development" ? "Strict" : "None",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        maxAge: 60 * 24 * 60 * 60 * 1000, // 30 days
       });
     }
     req.visitorId = visitorId;
