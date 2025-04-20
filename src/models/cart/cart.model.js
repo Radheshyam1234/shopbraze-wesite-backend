@@ -42,6 +42,6 @@ const customerCartSchema = new mongoose.Schema(
   }
 );
 
-customerCartSchema.index({ customer_id: 1, seller_id: 1 }, { unique: true });
+customerCartSchema.index({ customer: 1, seller: 1 }, { unique: true });
 
 export const CustomerCart = mongoose.model("CustomerCart", customerCartSchema);
