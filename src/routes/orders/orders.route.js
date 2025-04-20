@@ -3,6 +3,7 @@ import { verifySeller } from "../../middlewares/verify-seller.js";
 
 import { verifyCustomer } from "../../middlewares/verify-customer.js";
 import {
+  cancelOrderByOrderItemId,
   createBuyNowOrder,
   getCustomerOrders,
   getOrderDetailsByOrderItemId,
@@ -16,5 +17,6 @@ router.use(verifyCustomer);
 router.route("/").get(getCustomerOrders);
 router.route("/:orderItemId").get(getOrderDetailsByOrderItemId);
 router.route("/buy-now").post(createBuyNowOrder);
+router.route("/cancel/:orderItemId").put(cancelOrderByOrderItemId);
 
 export default router;

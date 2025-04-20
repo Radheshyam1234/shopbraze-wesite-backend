@@ -11,6 +11,7 @@ const OrderStatusSchema = new mongoose.Schema(
         "pending",
         "ready to ship",
         "pickup pending",
+        "cancelled",
         "intransit",
         "delivered",
         "rto intransit",
