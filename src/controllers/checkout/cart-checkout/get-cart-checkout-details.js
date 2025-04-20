@@ -1,4 +1,5 @@
 import { redis } from "../../../configurations/redis/index.js";
+import { CustomerCart } from "../../../models/cart/cart.model.js";
 import { calculateCartCheckoutDetails } from "../../../utils/cart/calculate-cart-checkout-details.js";
 
 import crypto from "crypto";
@@ -68,9 +69,13 @@ const getCartCheckoutDetails = async (req, res) => {
       const tokenKey = `cart_checkout_token:${newToken}`;
 
       // 3. Store checkout session data in Redis
+      const customerCart = await CustomerCart.findOne({
+        customer: user_id,
+        seller: sellerId,
+      }).lean();
+
       const checkoutSessionData = {
-        user_id,
-        sellerId,
+        cart_id: customerCart?._id,
       };
 
       await redis.setEx(tokenKey, 3600, JSON.stringify(checkoutSessionData)); // Store main token
