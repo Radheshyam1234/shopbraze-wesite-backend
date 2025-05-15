@@ -32,8 +32,8 @@ const verifyOtp = async (req, res) => {
       `session:${sessionToken}`,
       customer._id.toString(),
       "EX",
-      60 * 60 * 24 * 30
-    ); // 30 days
+      60 * 60 * 24 * 60
+    ); // 60 days
 
     res.cookie("session_token", sessionToken, {
       httpOnly: true,

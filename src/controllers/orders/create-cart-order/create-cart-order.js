@@ -6,7 +6,18 @@ import { Order } from "../../../models/order/order.model.js";
 import { redis } from "../../../configurations/redis/index.js";
 
 function generateOrderId() {
-  return "SB" + crypto.randomBytes(12).toString("hex").toUpperCase();
+  return "SB" + crypto.randomBytes(6).toString("hex").toUpperCase();
+}
+
+function getAlphaSuffix(index) {
+  let suffix = "";
+  index += 1;
+  while (index > 0) {
+    let rem = (index - 1) % 26;
+    suffix = String.fromCharCode(65 + rem) + suffix;
+    index = Math.floor((index - 1) / 26);
+  }
+  return suffix;
 }
 
 const createOrderFromCart = async (req, res) => {
@@ -60,13 +71,17 @@ const createOrderFromCart = async (req, res) => {
       }
     }
 
+    const orderId = generateOrderId();
+
     const order = new Order({
+      order_id: orderId,
+      source: "cart",
       seller: sellerId,
       customer: customerId,
       customer_details: req.customer,
-      products: products.map((item) => ({
+      products: products.map((item, index) => ({
         ...item,
-        order_item_id: generateOrderId(),
+        order_item_id: orderId + getAlphaSuffix(index),
         status_history: [{ status: "pending", timestamp: new Date() }],
       })),
       bill_details,
