@@ -96,7 +96,7 @@ const createBuyNowOrder = async (req, res) => {
 
       const order = new Order({
         order_id: orderId,
-        sourcer: "buy-now",
+        source: "buy-now",
         seller: req?.seller,
         customer: req?.customer?._id,
         customer_details: req?.customer,
