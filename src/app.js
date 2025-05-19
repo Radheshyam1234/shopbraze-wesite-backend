@@ -39,6 +39,7 @@ import couponsRouter from "./routes/coupons/coupons.route.js";
 import authRouter from "./routes/auth/auth.route.js";
 import checkoutRouter from "./routes/checkout/checkout.route.js";
 import orderRouter from "./routes/orders/orders.route.js";
+import testimonialRouter from "./routes/testimonials/testimonials.route.js";
 
 app.use("/api/pincode", pincodeRouter);
 
@@ -52,5 +53,6 @@ app.use("/cart", cartRouter);
 app.use("/coupons", couponsRouter);
 app.use("/checkout", checkoutRouter);
 app.use("/orders", orderRouter);
+app.use("/testimonials", testimonialRouter);
 
 export { app };

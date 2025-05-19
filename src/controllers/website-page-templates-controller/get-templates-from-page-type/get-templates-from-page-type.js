@@ -37,7 +37,7 @@ const getTemplatesFromPageType = async (req, res) => {
 
     // To return 10 products of each collection that are going to be render on home_page
     let collectionMappedCatalogues = {};
-    if (page_type === "home_page") {
+    if (page_type === "home_page" || page_type === "product_page") {
       collectionMappedCatalogues = await getCollectionMappedProducts(
         visibleTemplates
       );
