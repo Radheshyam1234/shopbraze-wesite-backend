@@ -16,6 +16,8 @@ const getWebConfig = async (req, res) => {
       customer_support_number: 1,
       add_to_bag: 1,
       capture_website_metrics: 1,
+      customer_support_number: 1,
+      whatsapp_number: 1,
       "ui_settings.auto_scroll_banner": 1,
       "ui_settings.auto_scroll_product_card": 1,
       "ui_settings.product_card_layout": 1,
@@ -35,6 +37,7 @@ const getWebConfig = async (req, res) => {
       "policies.policies_text_obj.terms_and_conditions_text": 1,
       "policies.policies_text_obj.shipping_policy_text": 1,
       "policies.policies_text_obj.about_us_text": 1,
+      fb_pixel_id: 1,
     });
 
     if (!seller_website_config_data) {

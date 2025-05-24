@@ -40,6 +40,7 @@ import authRouter from "./routes/auth/auth.route.js";
 import checkoutRouter from "./routes/checkout/checkout.route.js";
 import orderRouter from "./routes/orders/orders.route.js";
 import testimonialRouter from "./routes/testimonials/testimonials.route.js";
+import websiteNavigationRouter from "./routes/website-navigation-menu/website-navigation-menu.route.js";
 
 app.use("/api/pincode", pincodeRouter);
 
@@ -47,6 +48,7 @@ app.use("/auth", authRouter);
 
 app.use("/website-page-templates", websitePageTemplatesRouter);
 app.use("/website-page-config", websitePageConfigRouter);
+app.use("/website-navigations", websiteNavigationRouter);
 app.use("/collection", collectionRouter);
 app.use("/catalogue", catalogueRouter);
 app.use("/cart", cartRouter);

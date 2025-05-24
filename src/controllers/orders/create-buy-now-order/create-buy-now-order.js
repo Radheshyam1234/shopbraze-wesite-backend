@@ -115,7 +115,7 @@ const createBuyNowOrder = async (req, res) => {
       await redis.del(checkoutSessionKey);
       await redis.del(`checkout_token_user:${req?.customer?._id}`);
 
-      res.status(200).json({ message: "Order created successfully 🚀🚀" });
+      res.status(200).json({ products });
     } catch (error) {
       throw new Error(error);
     }

@@ -312,9 +312,6 @@ const WebsitePageConfigSchema = new Schema(
     web_otf_enabled: {
       type: Boolean,
     },
-    google_search_verification_code: {
-      type: String,
-    },
     policies: {
       _id: false,
       use_default_privacy_policy: {
@@ -357,6 +354,13 @@ const WebsitePageConfigSchema = new Schema(
         },
         about_us_text: { type: String, default: "" },
       },
+    },
+
+    google_search_verification_code: {
+      type: String,
+    },
+    fb_pixel_id: {
+      type: String,
     },
 
     seller: { type: ObjectId, ref: "Seller", required: true },

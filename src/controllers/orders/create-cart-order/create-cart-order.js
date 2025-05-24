@@ -96,7 +96,7 @@ const createOrderFromCart = async (req, res) => {
     await redis.del(sessionKey);
     await redis.del(`cart_checkout_token_user:${customerId}`);
 
-    return res.status(200).json({ message: "Order placed successfully 🚀" });
+    return res.status(200).json({ products });
   } catch (error) {
     console.error("❌ Error placing cart order:", error);
     return res.status(500).json({ error: "Internal server error" });
